@@ -5,5 +5,6 @@ import { WardService } from './ward.service';
 @Module({
   controllers: [WardController],
   providers: [WardService],
+  exports: [WardService],
 })
 export class WardModule {}

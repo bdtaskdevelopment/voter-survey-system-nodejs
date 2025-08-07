@@ -7,11 +7,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from '@fastify/helmet';
 import { ConfigService } from '@nestjs/config';
+import { SuccessInterceptor } from './common/interceptors/success.interceptor';
+import { ExceptionsFilter } from './common/exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter()
+    new FastifyAdapter(),
   );
 
   await app.register(helmet, {
@@ -32,6 +34,11 @@ async function bootstrap() {
       forbidUnknownValues: true,
     }),
   );
+
+  app.setGlobalPrefix('api/v1');
+
+  app.useGlobalInterceptors(new SuccessInterceptor());
+  app.useGlobalFilters(new ExceptionsFilter());
 
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT') || 3000;
