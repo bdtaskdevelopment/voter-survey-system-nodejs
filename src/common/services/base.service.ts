@@ -7,14 +7,8 @@ import {
   FindOperator,
   FindOptionsOrder,
 } from 'typeorm';
-
-export interface PaginationDto {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+import { PaginationDto } from '../dto/pagination.dto';
+import { NotFoundException } from '@nestjs/common';
 
 export interface PaginationResponse<T> {
   data: T[];
@@ -42,9 +36,13 @@ export abstract class BaseService<T extends ObjectLiteral> {
 
   async findOne(id: number): Promise<T | null> {
     try {
-      return await this.repository.findOne({
+      const result = await this.repository.findOne({
         where: { id } as unknown as FindOptionsWhere<T>,
       });
+      if (!result) {
+        throw new NotFoundException('Record not found');
+      }
+      return result;
     } catch (error) {
       console.error(`Error fetching record with id ${id}:`, error);
       return null;
@@ -63,7 +61,10 @@ export abstract class BaseService<T extends ObjectLiteral> {
 
   async update(id: number, updateDto: Partial<T>): Promise<T | null> {
     try {
-      await this.repository.update(id, updateDto);
+      const result = await this.repository.update(id, updateDto);
+      if (result.affected === 0) {
+        throw new NotFoundException('Record not found');
+      }
       return this.findOne(id);
     } catch (error) {
       console.error(`Error updating record with id ${id}:`, error);
@@ -73,20 +74,12 @@ export abstract class BaseService<T extends ObjectLiteral> {
 
   async remove(id: number): Promise<void> {
     try {
-      await this.repository.delete(id);
+      const result = await this.repository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException('Record not found');
+      }
     } catch (error) {
       console.error(`Error deleting record with id ${id}:`, error);
-      throw error;
-    }
-  }
-
-  async softRemove(id: number): Promise<void> {
-    try {
-      await this.repository.update(id, {
-        is_active: false,
-      } as unknown as Partial<T>);
-    } catch (error) {
-      console.error(`Error soft deleting record with id ${id}:`, error);
       throw error;
     }
   }
@@ -152,38 +145,6 @@ export abstract class BaseService<T extends ObjectLiteral> {
           hasPrev: false,
         },
       };
-    }
-  }
-
-  async findActive(): Promise<T[]> {
-    try {
-      return await this.repository.find({
-        where: { is_active: true } as unknown as FindOptionsWhere<T>,
-      });
-    } catch (error) {
-      console.error('Error fetching active records:', error);
-      return [];
-    }
-  }
-
-  async count(): Promise<number> {
-    try {
-      return await this.repository.count();
-    } catch (error) {
-      console.error('Error counting records:', error);
-      return 0;
-    }
-  }
-
-  async exists(id: number): Promise<boolean> {
-    try {
-      const count = await this.repository.count({
-        where: { id } as unknown as FindOptionsWhere<T>,
-      });
-      return count > 0;
-    } catch (error) {
-      console.error(`Error checking if record exists with id ${id}:`, error);
-      return false;
     }
   }
 }
