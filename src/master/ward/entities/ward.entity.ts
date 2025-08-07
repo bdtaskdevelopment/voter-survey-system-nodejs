@@ -1,5 +1,5 @@
-import { District } from 'src/master/district/entities/district.entity';
-import { Division } from 'src/master/division/entities/division.entity';
+import { District } from '../../district/entities/district.entity';
+import { Division } from '../../division/entities/division.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,8 +10,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-@Entity('ashans')
-export class Ashan {
+@Entity('wards')
+export class Ward {
   @PrimaryGeneratedColumn()
   id!: number;
 
