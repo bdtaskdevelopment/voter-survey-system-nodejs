@@ -12,4 +12,11 @@ export class DistrictService extends BaseService<District> {
   ) {
     super(districtRepository);
   }
+
+  async findByDivisionId(divisionId: number): Promise<District[]> {
+    return this.districtRepository.find({
+      where: { division_id: divisionId },
+      order: { name: 'ASC' },
+    });
+  }
 }

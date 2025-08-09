@@ -9,6 +9,7 @@ import helmet from '@fastify/helmet';
 import { ConfigService } from '@nestjs/config';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 import { ExceptionsFilter } from './common/exceptions.filter';
+import rateLimit from '@fastify/rate-limit';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -36,6 +37,11 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api/v1');
+
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute'
+  });
 
   app.useGlobalInterceptors(new SuccessInterceptor());
   app.useGlobalFilters(new ExceptionsFilter());

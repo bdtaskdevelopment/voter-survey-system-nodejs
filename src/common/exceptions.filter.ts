@@ -17,13 +17,27 @@ export class ExceptionsFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
+    // Handle NestJS HttpException
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
       message =
-        typeof res === 'string' ? res : (res as { message: string }).message;
+        typeof res === 'string'
+          ? res
+          : (res as Record<string, any>)?.message || message;
+    }
+    // Handle Fastify or plain object errors (like rate-limit)
+    else if (
+      typeof exception === 'object' &&
+      exception !== null &&
+      'statusCode' in exception
+    ) {
+      const err = exception as Record<string, any>;
+      status = err.statusCode || status;
+      message = err.message || message;
     }
 
+    // Send consistent response
     response.status(status).send({
       statusCode: status,
       success: false,

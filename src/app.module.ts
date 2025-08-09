@@ -4,6 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MasterModule } from './master/master.module';
+import { AuthModule } from './users/auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
+import { JwtStrategy } from './users/auth/jwt/jwt.strategy';
+import { JwtAuthGuard } from './users/auth/jwt/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -21,12 +26,16 @@ import { MasterModule } from './master/master.module';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
       }),
     }),
     MasterModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    JwtStrategy
+  ],
 })
-export class AppModule {}
+export class AppModule { }

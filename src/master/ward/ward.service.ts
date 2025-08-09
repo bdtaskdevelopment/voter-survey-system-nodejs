@@ -12,4 +12,10 @@ export class WardService extends BaseService<Ward> {
   ) {
     super(wardRepository);
   }
+
+  async findByThanaId(thanaId: number) {
+    // return await this.wardRepository.find({ where: { thana_id: thanaId } });
+
+  }
+
 }
